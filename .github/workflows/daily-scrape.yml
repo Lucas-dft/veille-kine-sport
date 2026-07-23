@@ -1,8 +1,8 @@
 name: Veille quotidienne — scraping
 
 # Orchestrateur du scraping quotidien. On passe par GitHub Actions plutôt que
-# par un cron Vercel car chaque appel Anthropic (web_search) peut prendre
-# plus de temps que la limite des fonctions serverless Vercel en Hobby (60s) ;
+# par un cron Vercel car l'ensemble Brave Search + Gemini sur ~10 catégories
+# peut dépasser la limite des fonctions serverless Vercel en Hobby (60s) ;
 # GitHub Actions n'a pas cette contrainte. Ce workflow appelle
 # /api/cron/scrape une fois par catégorie de sources, séquentiellement, pour
 # rester rapide côté serveur.
