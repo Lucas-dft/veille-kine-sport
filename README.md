@@ -18,7 +18,6 @@ spécification d'origine.
 - **GitHub Actions** — orchestrateur du scraping quotidien (pas Vercel Cron :
   voir "Pourquoi GitHub Actions et pas seulement Vercel Cron" ci-dessous).
 - **Vercel Cron** — déclenche l'envoi de l'email quotidien.
-- **Mot de passe unique** (`APP_PASSWORD`) — protège tout le dashboard.
 
 ## Mise en route
 
@@ -85,7 +84,7 @@ dans Vercel (Project Settings → Environment Variables) pour la prod.
 cp .env.example .env.local
 ```
 
-Génère des valeurs aléatoires pour `CRON_SECRET` et `APP_PASSWORD`, par exemple :
+Génère une valeur aléatoire pour `CRON_SECRET`, par exemple :
 
 ```bash
 openssl rand -hex 24
@@ -97,7 +96,8 @@ openssl rand -hex 24
 npm run dev
 ```
 
-Va sur `http://localhost:3000`, connecte-toi avec `APP_PASSWORD`.
+Va sur `http://localhost:3000` — le dashboard s'affiche directement, sans mot
+de passe (accès direct au tableau des offres).
 
 ### 7. Déployer sur Vercel
 

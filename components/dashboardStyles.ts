@@ -93,18 +93,6 @@ export const CSS = `
 .kd-scoreboard-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
 .kd-scoreboard-btn:disabled { opacity: 0.4; cursor: default; }
 
-.kd-logout-btn {
-  font-family: 'Inter', sans-serif;
-  font-size: 11.5px;
-  color: #D6DEE6;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 6px;
-  padding: 7px 12px;
-  cursor: pointer;
-}
-.kd-logout-btn:hover { background: rgba(255,255,255,0.08); }
-
 .kd-banner {
   display: flex;
   align-items: center;

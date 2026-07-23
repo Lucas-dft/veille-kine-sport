@@ -3,9 +3,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search, SlidersHorizontal, Copy, Check, Plus, X,
-  Info, ChevronDown, LayoutGrid, Table2, CheckCheck, RefreshCw, LogOut,
+  Info, ChevronDown, LayoutGrid, Table2, CheckCheck, RefreshCw,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Offer, NewOfferInput } from "@/lib/types";
 import { PRIORITY_COUNTRIES, SPORTS, LEVELS, STATUSES } from "@/lib/constants";
 import { formatDate, copyToClipboard } from "@/lib/format";
@@ -18,7 +17,6 @@ import { FilterSelect } from "./FilterSelect";
 import { CSS } from "./dashboardStyles";
 
 export default function Dashboard() {
-  const router = useRouter();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,12 +135,6 @@ export default function Dashboard() {
     await loadOffers();
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  };
-
   const paysOptions = useMemo(() => {
     const set = new Set(PRIORITY_COUNTRIES);
     offers.forEach((o) => o.pays && set.add(o.pays));
@@ -203,9 +195,6 @@ export default function Dashboard() {
               <CheckCheck size={13} /> Tout marquer comme vu
             </button>
           </div>
-          <button className="kd-logout-btn" onClick={handleLogout} title="Se déconnecter">
-            <LogOut size={14} />
-          </button>
         </div>
       </header>
 
