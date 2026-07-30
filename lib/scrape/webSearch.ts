@@ -5,6 +5,29 @@ import { getGeminiClient, GEMINI_MODEL, OFFERS_JSON_SCHEMA, extractOffersFromOut
 import { ScrapedOffer, normalizeScrapedOffer } from "./types";
 import { braveSearch, BraveResult } from "./braveSearch";
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Le palier gratuit de Gemini renvoie occasionnellement des erreurs
+ * transitoires (429 rate limit, 503 overloaded) qui, sans retry, remontent
+ * telles quelles en 500 côté route et font échouer toute la catégorie
+ * (cf. bug scraping football-europe). On retente 2 fois avec un court délai
+ * avant d'abandonner.
+ */
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === attempts) throw err;
+      await sleep(1000 * attempt);
+    }
+  }
+  throw new Error("unreachable");
+}
+
 /**
  * Recherche web via Brave Search API (gratuit, sans achat minimum imposé —
  * contrairement au palier payant de Gemini `google_search`, cf. README).
@@ -45,16 +68,18 @@ export async function scrapeCategory(category: ScrapeCategory, profile: Profile)
     buildUserPrompt(category) +
     `\n\nVoici les résultats de recherche web déjà collectés (ne cherche pas au-delà, extrait uniquement à partir de ceux-ci) :\n\n${searchResultsText}`;
 
-  const interaction = await client.interactions.create({
-    model: GEMINI_MODEL,
-    system_instruction: buildSystemPrompt(profile),
-    input: userInput,
-    response_format: {
-      type: "text",
-      mime_type: "application/json",
-      schema: OFFERS_JSON_SCHEMA,
-    },
-  });
+  const interaction = await withRetry(() =>
+    client.interactions.create({
+      model: GEMINI_MODEL,
+      system_instruction: buildSystemPrompt(profile),
+      input: userInput,
+      response_format: {
+        type: "text",
+        mime_type: "application/json",
+        schema: OFFERS_JSON_SCHEMA,
+      },
+    })
+  );
 
   const rawOffers = extractOffersFromOutputText(interaction.output_text);
 

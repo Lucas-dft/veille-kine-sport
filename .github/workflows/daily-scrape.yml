@@ -18,7 +18,6 @@ jobs:
     steps:
       - name: Scraper chaque catégorie de sources
         run: |
-          set -e
           categories=(
             "football-europe"
             "football-cl"
@@ -31,20 +30,32 @@ jobs:
             "autres-sports"
             "gmail-alerts"
           )
+          failed=0
           for category in "${categories[@]}"; do
             echo "→ Scraping : $category"
-            curl --fail --silent --show-error \
+            # Pas de --fail : une catégorie en erreur (ex. 500 transitoire côté
+            # Gemini/Brave) ne doit pas empêcher de scraper les suivantes. On
+            # affiche le code HTTP et le corps de la réponse pour diagnostiquer,
+            # et on fait échouer le job à la fin s'il y a eu au moins une erreur.
+            http_status=$(curl --silent --show-error --output /tmp/scrape_response.json --write-out "%{http_code}" \
               -X POST "${APP_URL}/api/cron/scrape" \
               -H "Content-Type: application/json" \
               -H "x-cron-secret: ${CRON_SECRET}" \
-              -d "{\"category\":\"$category\"}"
+              -d "{\"category\":\"$category\"}")
+            cat /tmp/scrape_response.json
             echo ""
+            if [ "$http_status" -ge 400 ]; then
+              echo "⚠️  Échec pour $category (HTTP $http_status)"
+              failed=1
+            fi
           done
+          exit $failed
         env:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
       - name: Vérifier les liens expirés
+        if: always()
         run: |
           curl --fail --silent --show-error \
             -X POST "${APP_URL}/api/cron/check-links" \
